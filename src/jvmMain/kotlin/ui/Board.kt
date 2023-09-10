@@ -30,6 +30,8 @@ fun Board(
                 QueenGrid(gridSize.dp)
             } else if (placement in state.safeGrid) {
                 SafeGrid(gridSize.dp)
+            } else if (placement in state.newUnsafe) {
+                NewUnsafeGrid(gridSize.dp)
             } else {
                 UnsafeGrid(gridSize.dp)
             }

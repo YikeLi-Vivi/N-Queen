@@ -16,10 +16,10 @@ enum class GameState {
 
 data class Placement(val x: Int, val y: Int)
 
-
 data class UIState(
     val placed: Set<Placement> = emptySet(),
-    val numQueens: Int = 4,
+    val newUnsafe: Set<Placement> = emptySet(),
+    val numQueens: Int = 8,
     val safeGrid: Set<Placement> = List(numQueens * numQueens) {
         Placement(it / numQueens, it % numQueens)
     }.toSet(),
@@ -43,6 +43,7 @@ class ViewModel {
                 safeGrid = List(size * size) {
                     Placement(it / size, it % size)
                 }.toSet(),
+                newUnsafe = emptySet(),
                 gameState = GameState.PROGRESS,
                 remain = size
             )
@@ -74,16 +75,16 @@ class ViewModel {
             s: (Set<Placement>, () -> Unit) -> Unit
         ) {
             _uiStateFlow.update {
+                val newPlaced = placed.subtract(it.placed).firstOrNull()
                 it.copy(
                     placed = placed,
                     safeGrid = safe,
                     gameState = GameState.PROGRESS,
-                    remain = left
+                    remain = left,
+                    newUnsafe = newPlaced?.let { g -> getUnsafe(g, it.numQueens) } ?: emptySet()
                 )
             }
-            println(placed)
-            println(left)
-            runBlocking { delay(1000L) }
+            runBlocking { delay(2000L) }
 
             if (left == 0) {
                 s(placed, f)
@@ -109,8 +110,17 @@ class ViewModel {
     private fun pruneSquares(q: Placement, safe: Set<Placement>): Set<Placement> {
         fun sameCol(s1: Placement, s2: Placement) = s1.x == s2.x
         fun sameRow(s1: Placement, s2: Placement) = s1.y == s2.y
-        fun sameGrid(s1: Placement, s2: Placement) = (s1.y == s2.y) && (s1.x == s2.x)
         fun dia(s1: Placement, s2: Placement) = (abs(s1.x - s2.x) == abs(s1.y - s2.y))
-        return safe.filter { s -> !(sameCol(s, q) || sameRow(s, q) || dia(s, q) || sameGrid(s, q)) }.toSet()
+        val newUnsafe = safe.filter { s -> sameCol(s, q) || sameRow(s, q) || dia(s, q) }.toSet()
+        return safe.subtract(newUnsafe.plus(q))
+    }
+
+    private fun getUnsafe(q: Placement, size: Int): Set<Placement> {
+        fun sameCol(s1: Placement, s2: Placement) = s1.x == s2.x
+        fun sameRow(s1: Placement, s2: Placement) = s1.y == s2.y
+        fun dia(s1: Placement, s2: Placement) = (abs(s1.x - s2.x) == abs(s1.y - s2.y))
+        return List(size * size) {
+            Placement(it / size, it % size)
+        }.filter { s -> sameCol(s, q) || sameRow(s, q) || dia(s, q) }.toSet().subtract(setOf(q))
     }
 }
