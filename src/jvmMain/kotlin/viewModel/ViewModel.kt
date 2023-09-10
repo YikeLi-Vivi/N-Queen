@@ -11,7 +11,8 @@ import kotlin.math.abs
 enum class GameState {
     SUCCEED,
     FAIL,
-    PROGRESS
+    PROGRESS,
+    WAITING
 }
 
 data class Placement(val x: Int, val y: Int)
@@ -19,23 +20,35 @@ data class Placement(val x: Int, val y: Int)
 data class UIState(
     val placed: Set<Placement> = emptySet(),
     val newUnsafe: Set<Placement> = emptySet(),
-    val numQueens: Int = 8,
+    val numQueens: Int = 4,
     val safeGrid: Set<Placement> = List(numQueens * numQueens) {
         Placement(it / numQueens, it % numQueens)
     }.toSet(),
-    val gameState: GameState = GameState.PROGRESS,
+    val gameState: GameState = GameState.WAITING,
     val remain: Int = numQueens
 )
 
 
 class ViewModel {
-    private val _uiStateFlow = MutableStateFlow(UIState())
+    private var count = 4
+    private val _uiStateFlow = MutableStateFlow(UIState(numQueens = count))
     private val uiState
         get() = _uiStateFlow.value
     val uiStateFlow = _uiStateFlow.asStateFlow()
-    private val UPPER = 10
+    val upper = 10
 
-    fun changeQueenSize(size: Int) {
+
+    fun plus() {
+        count += 1
+        changeQueenSize(count)
+    }
+
+    fun minus() {
+        count -= 1
+        changeQueenSize(count)
+    }
+
+    private fun changeQueenSize(size: Int) {
         _uiStateFlow.update {
             UIState(
                 placed = emptySet(),
@@ -44,7 +57,7 @@ class ViewModel {
                     Placement(it / size, it % size)
                 }.toSet(),
                 newUnsafe = emptySet(),
-                gameState = GameState.PROGRESS,
+                gameState = GameState.WAITING,
                 remain = size
             )
         }
