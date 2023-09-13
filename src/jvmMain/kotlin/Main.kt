@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.Board
+import ui.Marker
 import ui.NumButton
 import viewModel.GameState
 import viewModel.Placement
@@ -31,10 +32,13 @@ fun App() {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
             when (state.gameState) {
                 GameState.WAITING -> Text("Click Solve", style = MaterialTheme.typography.h4)
-                GameState.PROGRESS -> Text("Solving ...", style = MaterialTheme.typography.h4)
-                GameState.SUCCEED -> Text("Succeed!", style = MaterialTheme.typography.h4)
-                GameState.FAIL -> Text("Fail", style = MaterialTheme.typography.h4)
+                GameState.SUCCESS_CONTINUATION -> Text("success", style = MaterialTheme.typography.h4)
+                GameState.FAILURE_CONTINUATION -> Text("resume", style = MaterialTheme.typography.h4)
+                GameState.SUCCEED -> Text("SOLVED!", style = MaterialTheme.typography.h4)
+                GameState.FAIL -> Text("FAILED", style = MaterialTheme.typography.h4)
             }
+            Spacer(modifier = Modifier.height(20.dp))
+            Marker()
             Spacer(modifier = Modifier.height(20.dp))
             Board(
                 state = state,
@@ -42,8 +46,8 @@ fun App() {
             Spacer(modifier = Modifier.height(40.dp))
             NumButton(
                 viewModel,
-                minusEnabled = state.numQueens > 1 && state.gameState != GameState.PROGRESS,
-                plusEnabled = state.numQueens < viewModel.upper && state.gameState != GameState.PROGRESS,
+                minusEnabled = state.numQueens > 1 && state.gameState != GameState.SUCCESS_CONTINUATION && state.gameState != GameState.FAILURE_CONTINUATION,
+                plusEnabled = state.numQueens < viewModel.upper && state.gameState != GameState.SUCCESS_CONTINUATION && state.gameState != GameState.FAILURE_CONTINUATION,
                 count = state.numQueens
             )
             Spacer(modifier = Modifier.height(15.dp))
@@ -53,7 +57,7 @@ fun App() {
                         viewModel.solveQueen()
                     }
                 },
-                enabled = state.gameState != GameState.PROGRESS,
+                enabled = state.gameState != GameState.SUCCESS_CONTINUATION && state.gameState != GameState.FAILURE_CONTINUATION,
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
             ) {
                 Text("Solve", style = MaterialTheme.typography.h5)

@@ -11,8 +11,9 @@ import kotlin.math.abs
 enum class GameState {
     SUCCEED,
     FAIL,
-    PROGRESS,
-    WAITING
+    WAITING,
+    SUCCESS_CONTINUATION,
+    FAILURE_CONTINUATION
 }
 
 data class Placement(val x: Int, val y: Int)
@@ -25,7 +26,7 @@ data class UIState(
         Placement(it / numQueens, it % numQueens)
     }.toSet(),
     val gameState: GameState = GameState.WAITING,
-    val remain: Int = numQueens
+    val remain: Int = numQueens,
 )
 
 
@@ -84,6 +85,7 @@ class ViewModel {
             placed: Set<Placement>,
             left: Int,
             safe: Set<Placement>,
+            state: GameState,
             f: () -> Unit,
             s: (Set<Placement>, () -> Unit) -> Unit
         ) {
@@ -92,13 +94,12 @@ class ViewModel {
                 it.copy(
                     placed = placed,
                     safeGrid = safe,
-                    gameState = GameState.PROGRESS,
+                    gameState = state,
                     remain = left,
                     newUnsafe = newPlaced?.let { g -> getUnsafe(g, it.numQueens) } ?: emptySet()
                 )
             }
             runBlocking { delay(2000L) }
-
             if (left == 0) {
                 s(placed, f)
             } else {
@@ -109,14 +110,14 @@ class ViewModel {
                         placed.plus(safe.first()),
                         left - 1,
                         pruneSquares(safe.first(), safe),
-                        { (placeQueens(placed, left, safe.subtract(setOf(safe.first())), f, s)) },
+                        GameState.SUCCESS_CONTINUATION,
+                        { (placeQueens(placed, left, safe.subtract(setOf(safe.first())), GameState.FAILURE_CONTINUATION ,f, s)) },
                         s
                     )
                 }
             }
         }
-
-        placeQueens(placed = emptySet(), uiState.numQueens, uiState.safeGrid, ::fail, ::succeed)
+        placeQueens(placed = emptySet(), uiState.numQueens, uiState.safeGrid, GameState.WAITING , ::fail, ::succeed)
     }
 
 
