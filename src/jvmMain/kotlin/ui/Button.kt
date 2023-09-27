@@ -32,22 +32,30 @@ fun NumButton(
         Button(
             onClick = boardModel::minus,
             enabled = minusEnabled,
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0x00FFFFFF))
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.Black,
+                disabledBackgroundColor = Color.LightGray
+            )
         ) {
             Text(
                 "-",
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.h5,
+                color = Color.White,
             )
         }
         Text(count.toString(), style = MaterialTheme.typography.h5)
         Button(
             onClick = boardModel::plus,
             enabled = plusEnabled,
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color(0x00FFFFFF))
+            colors = ButtonDefaults.buttonColors(
+                backgroundColor = Color.Black,
+                disabledBackgroundColor = Color.LightGray
+            )
         ) {
             Text(
                 "+",
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.h5,
+                color = Color.White,
             )
         }
     }

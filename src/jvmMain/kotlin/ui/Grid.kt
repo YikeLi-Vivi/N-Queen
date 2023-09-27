@@ -20,28 +20,28 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SafeGrid(size: Dp = 60.dp) {
     Box(
-        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(Color(0xFFB5C99A))
+        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(ColorTheme.SafeGrid)
     )
 }
 
 @Composable
 fun NewUnsafeGrid(size: Dp = 60.dp) {
     Box(
-        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(Color(0xFF862B0D))
+        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(ColorTheme.NewUnsafeGrid)
     )
 }
 
 @Composable
 fun UnsafeGrid(size: Dp = 60.dp) {
     Box(
-        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(Color(0x99862B0D))
+        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(ColorTheme.UnsafeGrid)
     )
 }
 
 @Composable
 fun QueenGrid(size: Dp = 60.dp) {
     Box(
-        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(Color(0xFFFFF9C9)),
+        modifier = Modifier.size(size).border(width = 2.dp, color = Color.Black).background(ColorTheme.SafeGrid),
         contentAlignment = Alignment.Center
     ) {
         Image(

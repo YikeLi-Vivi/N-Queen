@@ -31,6 +31,13 @@ data class UIState(
 
 
 class ViewModel {
+    private val _delayFLow = MutableStateFlow(1F)
+    val delayFlow = _delayFLow.asStateFlow()
+    val maxDelay = 2000L
+    private var delay
+        get() = _delayFLow.value
+        set(value) = _delayFLow.update { value }
+
     private var count = 4
     private val _uiStateFlow = MutableStateFlow(UIState(numQueens = count))
     private val uiState
@@ -38,6 +45,10 @@ class ViewModel {
     val uiStateFlow = _uiStateFlow.asStateFlow()
     val upper = 10
 
+    fun changeDelay(newDelay: Float) {
+        delay = newDelay
+        println(delay)
+    }
 
     fun plus() {
         count += 1
@@ -72,7 +83,10 @@ class ViewModel {
 
     private fun succeed(placed: Set<Placement>, resume: () -> Unit) {
         _uiStateFlow.update {
-            it.copy(gameState = GameState.SUCCEED)
+            it.copy(
+                gameState = GameState.SUCCEED,
+                newUnsafe = emptySet()
+            )
         }
     }
 
@@ -89,17 +103,29 @@ class ViewModel {
             f: () -> Unit,
             s: (Set<Placement>, () -> Unit) -> Unit
         ) {
+            var newPlaced: Placement? = null;
             _uiStateFlow.update {
-                val newPlaced = placed.subtract(it.placed).firstOrNull()
+                newPlaced = placed.subtract(it.placed).firstOrNull()
                 it.copy(
                     placed = placed,
+                    gameState = state,
+                )
+            }
+            if (uiState.gameState != GameState.WAITING) {
+
+                runBlocking { delay((delay * maxDelay * 0.3).toLong()) }
+            }
+            _uiStateFlow.update {
+                it.copy(
                     safeGrid = safe,
                     gameState = state,
                     remain = left,
                     newUnsafe = newPlaced?.let { g -> getUnsafe(g, it.numQueens) } ?: emptySet()
                 )
             }
-            runBlocking { delay(2000L) }
+            if (uiState.gameState != GameState.WAITING) {
+                runBlocking { delay((delay * maxDelay * 0.9).toLong()) }
+            }
             if (left == 0) {
                 s(placed, f)
             } else {
@@ -111,13 +137,27 @@ class ViewModel {
                         left - 1,
                         pruneSquares(safe.first(), safe),
                         GameState.SUCCESS_CONTINUATION,
-                        { (placeQueens(placed, left, safe.subtract(setOf(safe.first())), GameState.FAILURE_CONTINUATION ,f, s)) },
+                        {
+                            (placeQueens(
+                                placed,
+                                left,
+                                safe.subtract(setOf(safe.first())),
+                                GameState.FAILURE_CONTINUATION,
+                                f,
+                                s
+                            ))
+                        },
                         s
                     )
                 }
             }
         }
-        placeQueens(placed = emptySet(), uiState.numQueens, uiState.safeGrid, GameState.WAITING , ::fail, ::succeed)
+
+        if (uiState.gameState == GameState.FAIL || uiState.gameState == GameState.SUCCEED){
+            changeQueenSize(uiState.numQueens)
+        }
+
+        placeQueens(placed = emptySet(), uiState.numQueens, uiState.safeGrid, GameState.WAITING, ::fail, ::succeed)
     }
 
 
