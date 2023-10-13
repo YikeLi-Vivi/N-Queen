@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.Color
 
 object ColorTheme {
     val SafeGrid = Color.White
-    val UnsafeGrid = Color.DarkGray
+    val UnsafeGrid = Color.Gray
     val NewUnsafeGrid = Color(0xFF862B0D)
     val Succeed = Color(0xFF679f37)
     val Failed = Color.Black

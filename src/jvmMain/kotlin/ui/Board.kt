@@ -10,9 +10,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import viewModel.GameState
 import viewModel.Placement
@@ -34,7 +33,7 @@ fun Board(
 ) {
     val gridSize = 500 / state.numQueens
     LazyVerticalGrid(
-        columns = GridCells.Fixed(state.numQueens), modifier = modifier,
+        columns = GridCells.Fixed(state.numQueens), modifier = modifier.border(5.dp, Color.Black),
         verticalArrangement = Arrangement.Center, horizontalArrangement = Arrangement.Center
     ) {
         items(count = state.numQueens * state.numQueens) { index ->
@@ -63,6 +62,7 @@ fun GameStateDisplay(
         GameState.SUCCEED -> ColorTheme.Succeed
         GameState.SUCCESS_CONTINUATION -> ColorTheme.SuccessContinuation
         GameState.FAILURE_CONTINUATION -> ColorTheme.ResumeContinuation
+        GameState.STACK_OVERFLOW -> ColorTheme.Failed
     }
 
     Box(
@@ -71,11 +71,12 @@ fun GameStateDisplay(
     ) {
         Text(
             text = when (state) {
-                GameState.WAITING -> "Click Solve"
+                GameState.WAITING -> "Waiting ..."
                 GameState.FAIL -> "Failed :("
                 GameState.SUCCEED -> "Solved!"
-                GameState.SUCCESS_CONTINUATION -> "Succeed to Next Step"
-                GameState.FAILURE_CONTINUATION -> "Backtrack to Previous State"
+                GameState.SUCCESS_CONTINUATION -> "Continue ..."
+                GameState.FAILURE_CONTINUATION -> "Backtracking ..."
+                GameState.STACK_OVERFLOW -> "Stack OverFlow ... "
             }, color = Color.White, style = MaterialTheme.typography.h6, textAlign = TextAlign.Center
         )
     }
@@ -103,7 +104,7 @@ fun AppView(
     val delay by viewModel.delayFlow.collectAsState()
 
     MaterialTheme {
-        Row(horizontalArrangement = Arrangement.Center) {
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.padding(30.dp)) {
             Column(
                 modifier = Modifier.weight(0.5f).fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
@@ -125,11 +126,7 @@ fun AppView(
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 Button(
-                    onClick = {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            viewModel.solveQueen()
-                        }
-                    },
+                    onClick = { CoroutineScope(Dispatchers.Default).launch { viewModel.solveQueen() } },
                     enabled = state.gameState != GameState.SUCCESS_CONTINUATION && state.gameState != GameState.FAILURE_CONTINUATION,
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = Color.Black,

@@ -18,7 +18,7 @@ fun SpeedSlider(
     onValueChange: (Float) -> Unit = {},
 ) {
     Row(horizontalArrangement = Arrangement.SpaceAround) {
-        Text("faster")
+        Text("delay-")
         Slider(
             value = value, onValueChange = onValueChange, modifier = Modifier.width(250.dp),
             colors = SliderDefaults.colors(
@@ -29,7 +29,7 @@ fun SpeedSlider(
                 inactiveTrackColor = Color.White
             )
         )
-        Text("slower")
+        Text("delay+")
     }
 
 }
